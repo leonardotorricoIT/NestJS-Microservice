@@ -1,35 +1,59 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { GrpcMethod } from '@nestjs/microservices';
+import { UserService } from './users.service';
 
 @Controller()
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+export class UserController {
+  constructor(private readonly userService: UserService) {}
 
-  @MessagePattern('createUser')
-  create(@Payload() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @GrpcMethod('UserService', 'CreateUser')
+  async createUser(data: { username: string; email: string }) {
+    const user = await this.userService.createUser(data.username, data.email);
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      created_at: user.created_at.toISOString(),
+    };
   }
 
-  @MessagePattern('findAllUsers')
-  findAll() {
-    return this.usersService.findAll();
+  @GrpcMethod('UserService', 'GetAllUsers')
+  async getAllUsers() {
+    const users = await this.userService.getAllUsers();
+    return {
+      users: users.map((user) => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at.toISOString(),
+      })),
+    };
   }
 
-  @MessagePattern('findOneUser')
-  findOne(@Payload() id: number) {
-    return this.usersService.findOne(id);
+  @GrpcMethod('UserService', 'GetUserById')
+  async getUserById(data: { id: number }) {
+    const user = await this.userService.getUserById(data.id);
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      created_at: user.created_at.toISOString(),
+    };
   }
 
-  @MessagePattern('updateUser')
-  update(@Payload() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(updateUserDto.id, updateUserDto);
-  }
-
-  @MessagePattern('removeUser')
-  remove(@Payload() id: number) {
-    return this.usersService.remove(id);
+  @GrpcMethod('UserService', 'ValidateUser')
+  async validateUser(data: { id: number }) {
+    const result = await this.userService.validateUser(data.id);
+    return {
+      exists: result.exists,
+      user: result.user
+        ? {
+            id: result.user.id,
+            username: result.user.username,
+            email: result.user.email,
+            created_at: result.user.created_at.toISOString(),
+          }
+        : null,
+    };
   }
 }
