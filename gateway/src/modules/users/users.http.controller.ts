@@ -1,16 +1,26 @@
-import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  OnModuleInit,
+} from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { CreateUserDto } from './dto/dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-interface UserServiceClient {
-  CreateUser(data: { username: string; email: string }): Promise<{ user: any }>;
-  getAllUsers(data: {}): Promise<{ users: any[] }>;
-  getUserById(data: { id: number }): Promise<{ exists: boolean; user?: any }>;
-}
+import { CreateUserDto } from './dto/dto';
+import {
+  UserServiceClient,
+  CreateUserRequest,
+  GetUserByIdRequest,
+  Empty,
+} from '../../proto/user'; // 👈 import del proto generado
+
 @ApiTags('Users')
 @Controller('users')
-export class UsersHttpController {
+export class UsersHttpController implements OnModuleInit {
   private userSvc: UserServiceClient;
 
   constructor(@Inject('USER_PACKAGE') private client: ClientGrpc) {}
@@ -23,17 +33,24 @@ export class UsersHttpController {
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   create(@Body() dto: CreateUserDto) {
-    return this.userSvc.CreateUser(dto);
+    const request: CreateUserRequest = {
+      username: dto.username,
+      email: dto.email,
+    };
+    return this.userSvc.createUser(request);
   }
 
   @Get()
   @ApiOperation({ summary: 'List all users' })
   list() {
-    return this.userSvc.getAllUsers({});
+    const request: Empty = {};
+    return this.userSvc.getAllUsers(request);
   }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   async getUser(@Param('id') id: string) {
-    return this.userSvc.getUserById({ id: Number(id) });
+    const request: GetUserByIdRequest = { id: Number(id) };
+    return this.userSvc.getUserById(request);
   }
 }

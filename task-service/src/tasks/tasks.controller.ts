@@ -10,20 +10,20 @@ export class TaskController {
   async createTask(data: {
     title: string;
     description: string;
-    created_by: number;
+    createdBy: number;
   }) {
     console.log('Received CreateTask request with data:', data);
     const task = await this.taskService.createTask(
       data.title,
       data.description,
-      data.created_by,
+      data.createdBy,
     );
     return {
       id: task.id,
       title: task.title,
       description: task.description,
       completed: task.completed,
-      created_by: task.created_by,
+      createdBy: task.createdBy,
       created_at: task.created_at.toISOString(),
     };
   }
@@ -37,7 +37,7 @@ export class TaskController {
         title: task.title,
         description: task.description,
         completed: task.completed,
-        created_by: task.created_by,
+        createdBy: task.createdBy,
         created_at: task.created_at.toISOString(),
       })),
     };
@@ -51,7 +51,7 @@ export class TaskController {
       title: task.title,
       description: task.description,
       completed: task.completed,
-      created_by: task.created_by,
+      createdBy: task.createdBy,
       created_at: task.created_at.toISOString(),
     };
   }

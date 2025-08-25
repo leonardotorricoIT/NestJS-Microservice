@@ -36,5 +36,5 @@ export class CreateTaskDto {
   })
   @IsInt()
   @Min(1)
-  created_by: number;
+  createdBy: number;
 }

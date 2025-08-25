@@ -20,7 +20,7 @@ export class Task {
   completed: boolean;
 
   @Column()
-  created_by: number;
+  createdBy: number;
 
   @CreateDateColumn()
   created_at: Date;

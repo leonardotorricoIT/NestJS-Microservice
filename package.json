@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "ts-proto": "^2.7.7"
+  }
+}

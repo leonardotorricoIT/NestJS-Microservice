@@ -35,15 +35,15 @@ export class TaskService implements OnModuleInit {
   async createTask(
     title: string,
     description: string,
-    created_by: number,
+    createdBy: number,
   ): Promise<Task> {
     try {
       const userValidation = await firstValueFrom(
-        this.userService.validateUser({ id: created_by }),
+        this.userService.validateUser({ id: createdBy }),
       );
       if (!userValidation.exists) {
         throw new BadRequestException(
-          `User with ID ${created_by} does not exist`,
+          `User with ID ${createdBy} does not exist`,
         );
       }
     } catch (error) {
@@ -55,7 +55,7 @@ export class TaskService implements OnModuleInit {
     const task = this.taskRepository.create({
       title,
       description,
-      created_by,
+      createdBy,
       completed: false,
     });
 
