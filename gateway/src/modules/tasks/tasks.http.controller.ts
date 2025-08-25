@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { CreateTaskDto } from '../users/dto/dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 interface TaskServiceClient {
   CreateTask(data: {
@@ -20,6 +21,7 @@ interface TaskServiceClient {
   CompleteTask(data: { id: number }): Promise<any>;
 }
 
+@ApiTags('Users')
 @Controller('tasks')
 export class TasksHttpController {
   private taskSvc: TaskServiceClient;
@@ -31,16 +33,19 @@ export class TasksHttpController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a new task' })
   create(@Body() dto: CreateTaskDto) {
     return this.taskSvc.CreateTask(dto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'List all tasks' })
   list() {
     return this.taskSvc.GetAllTasks({});
   }
 
   @Patch(':id/complete')
+  @ApiOperation({ summary: 'Mark task as completed' })
   complete(@Param('id') id: string) {
     return this.taskSvc.CompleteTask({ id: Number(id) });
   }
