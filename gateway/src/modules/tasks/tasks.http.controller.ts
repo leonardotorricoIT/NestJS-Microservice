@@ -15,9 +15,9 @@ interface TaskServiceClient {
     title: string;
     description?: string;
     created_by: number;
-  }): Promise<{ task: any }>;
-  ListTasks(data: {}): Promise<{ tasks: any[] }>;
-  CompleteTask(data: { id: number }): Promise<{ task: any }>;
+  }): Promise<any>;
+  GetAllTasks(data: {}): Promise<{ tasks: any[] }>;
+  CompleteTask(data: { id: number }): Promise<any>;
 }
 
 @Controller('tasks')
@@ -37,7 +37,7 @@ export class TasksHttpController {
 
   @Get()
   list() {
-    return this.taskSvc.ListTasks({});
+    return this.taskSvc.GetAllTasks({});
   }
 
   @Patch(':id/complete')

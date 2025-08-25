@@ -12,6 +12,7 @@ export class TaskController {
     description: string;
     created_by: number;
   }) {
+    console.log('Received CreateTask request with data:', data);
     const task = await this.taskService.createTask(
       data.title,
       data.description,

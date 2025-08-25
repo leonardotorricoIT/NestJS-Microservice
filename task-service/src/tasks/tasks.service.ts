@@ -41,7 +41,6 @@ export class TaskService implements OnModuleInit {
       const userValidation = await firstValueFrom(
         this.userService.validateUser({ id: created_by }),
       );
-
       if (!userValidation.exists) {
         throw new BadRequestException(
           `User with ID ${created_by} does not exist`,
@@ -53,7 +52,6 @@ export class TaskService implements OnModuleInit {
       }
       throw new BadRequestException('Error validating user');
     }
-
     const task = this.taskRepository.create({
       title,
       description,

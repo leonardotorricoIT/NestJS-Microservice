@@ -14,6 +14,7 @@ import { TasksHttpController } from './modules/tasks/tasks.http.controller';
           package: 'user',
           protoPath: join(__dirname, '../../proto/user.proto'),
           url: '0.0.0.0:5001',
+          loader: { keepCase: true },
         },
       },
       {
@@ -23,6 +24,7 @@ import { TasksHttpController } from './modules/tasks/tasks.http.controller';
           package: 'task',
           protoPath: join(__dirname, '../../proto/task.proto'),
           url: '0.0.0.0:5002',
+          loader: { keepCase: true },
         },
       },
     ]),
