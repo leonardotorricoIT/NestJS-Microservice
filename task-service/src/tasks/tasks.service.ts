@@ -10,14 +10,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { firstValueFrom } from 'rxjs';
-
+import { RpcException } from '@nestjs/microservices';
 import {
   UserServiceClient,
   GetUserByIdRequest,
   UserValidationResponse,
   USER_SERVICE_NAME,
 } from '../proto/user';
-
+import { status } from '@grpc/grpc-js';
 @Injectable()
 export class TaskService implements OnModuleInit {
   private userService: UserServiceClient;
@@ -39,20 +39,21 @@ export class TaskService implements OnModuleInit {
     createdBy: number,
   ): Promise<Task> {
     try {
-      const userValidation: UserValidationResponse = await firstValueFrom(
-        this.userService.validateUser({ id: createdBy } as GetUserByIdRequest),
+      const userValidation = await firstValueFrom(
+        this.userService.validateUser({ id: createdBy }),
       );
 
       if (!userValidation.exists) {
-        throw new BadRequestException(
-          `User with ID ${createdBy} does not exist`,
-        );
+        throw new RpcException({
+          code: status.NOT_FOUND,
+          message: `User with ID ${createdBy} does not exist`,
+        });
       }
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Error validating user');
+      throw new RpcException({
+        code: status.INTERNAL,
+        message: 'Error validating user',
+      });
     }
 
     const task = this.taskRepository.create({
