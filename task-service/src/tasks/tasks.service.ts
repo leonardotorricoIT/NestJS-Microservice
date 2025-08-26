@@ -9,18 +9,18 @@ import type { ClientGrpc } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
-import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 
-interface UserService {
-  validateUser(data: {
-    id: number;
-  }): Observable<{ exists: boolean; user?: any }>;
-}
+import {
+  UserServiceClient,
+  GetUserByIdRequest,
+  UserValidationResponse,
+  USER_SERVICE_NAME,
+} from '../proto/user';
 
 @Injectable()
 export class TaskService implements OnModuleInit {
-  private userService: UserService;
+  private userService: UserServiceClient;
 
   constructor(
     @InjectRepository(Task)
@@ -29,7 +29,8 @@ export class TaskService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.userService = this.client.getService<UserService>('UserService');
+    this.userService =
+      this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
   }
 
   async createTask(
@@ -38,9 +39,10 @@ export class TaskService implements OnModuleInit {
     createdBy: number,
   ): Promise<Task> {
     try {
-      const userValidation = await firstValueFrom(
-        this.userService.validateUser({ id: createdBy }),
+      const userValidation: UserValidationResponse = await firstValueFrom(
+        this.userService.validateUser({ id: createdBy } as GetUserByIdRequest),
       );
+
       if (!userValidation.exists) {
         throw new BadRequestException(
           `User with ID ${createdBy} does not exist`,
@@ -52,6 +54,7 @@ export class TaskService implements OnModuleInit {
       }
       throw new BadRequestException('Error validating user');
     }
+
     const task = this.taskRepository.create({
       title,
       description,

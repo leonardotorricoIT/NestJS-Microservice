@@ -1,18 +1,19 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { TaskService } from './tasks.service';
+import {
+  Task,
+  CreateTaskRequest,
+  TasksResponse,
+  CompleteTaskRequest,
+} from '../proto/task';
 
 @Controller()
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @GrpcMethod('TaskService', 'CreateTask')
-  async createTask(data: {
-    title: string;
-    description: string;
-    createdBy: number;
-  }) {
-    console.log('Received CreateTask request with data:', data);
+  async createTask(data: CreateTaskRequest): Promise<Task> {
     const task = await this.taskService.createTask(
       data.title,
       data.description,
@@ -24,12 +25,12 @@ export class TaskController {
       description: task.description,
       completed: task.completed,
       createdBy: task.createdBy,
-      created_at: task.created_at.toISOString(),
+      createdAt: task.created_at.toISOString(),
     };
   }
 
   @GrpcMethod('TaskService', 'GetAllTasks')
-  async getAllTasks() {
+  async getAllTasks(): Promise<TasksResponse> {
     const tasks = await this.taskService.getAllTasks();
     return {
       tasks: tasks.map((task) => ({
@@ -38,13 +39,13 @@ export class TaskController {
         description: task.description,
         completed: task.completed,
         createdBy: task.createdBy,
-        created_at: task.created_at.toISOString(),
+        createdAt: task.created_at.toISOString(),
       })),
     };
   }
 
   @GrpcMethod('TaskService', 'CompleteTask')
-  async completeTask(data: { id: number }) {
+  async completeTask(data: CompleteTaskRequest): Promise<Task> {
     const task = await this.taskService.completeTask(data.id);
     return {
       id: task.id,
@@ -52,7 +53,7 @@ export class TaskController {
       description: task.description,
       completed: task.completed,
       createdBy: task.createdBy,
-      created_at: task.created_at.toISOString(),
+      createdAt: task.created_at.toISOString(),
     };
   }
 }
