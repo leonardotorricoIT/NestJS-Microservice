@@ -18,6 +18,7 @@ import {
   CompleteTaskRequest,
   Empty,
 } from '../../proto/task';
+import { firstValueFrom } from 'rxjs';
 
 @ApiTags('Tasks')
 @Controller('tasks')
@@ -32,13 +33,18 @@ export class TasksHttpController implements OnModuleInit {
 
   @Post()
   @ApiOperation({ summary: 'Create a new task' })
-  create(@Body() dto: CreateTaskDto) {
-    const request: CreateTaskRequest = {
-      title: dto.title,
-      description: dto.description ?? '',
-      createdBy: dto.createdBy,
-    };
-    return this.taskSvc.createTask(request);
+  async create(@Body() dto: CreateTaskDto) {
+    try {
+      const request: CreateTaskRequest = {
+        title: dto.title,
+        description: dto.description ?? '',
+        createdBy: dto.createdBy,
+      };
+
+      return await firstValueFrom(this.taskSvc.createTask(request));
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Get()

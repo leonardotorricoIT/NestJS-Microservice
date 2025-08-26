@@ -3,6 +3,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { UsersHttpController } from './modules/users/users.http.controller';
 import { TasksHttpController } from './modules/tasks/tasks.http.controller';
+import { APP_FILTER } from '@nestjs/core';
+import { GrpcExceptionFilter } from './filters/grpc-exception.filter';
 
 @Module({
   imports: [
@@ -30,5 +32,11 @@ import { TasksHttpController } from './modules/tasks/tasks.http.controller';
     ]),
   ],
   controllers: [UsersHttpController, TasksHttpController],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GrpcExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
