@@ -3,56 +3,53 @@ import {
   Catch,
   ArgumentsHost,
   HttpStatus,
-  HttpException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { RpcException } from '@nestjs/microservices';
 import { status } from '@grpc/grpc-js';
 
-@Catch(RpcException)
+@Catch()
 export class GrpcExceptionFilter implements ExceptionFilter {
-  catch(exception: RpcException, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const error = exception.getError();
 
-    let httpStatus: HttpStatus;
-    let message: string;
+    console.log('EXCEPTION CAUGHT IN FILTER:', exception);
 
-    if (typeof error === 'object' && error !== null && 'code' in error) {
-      switch (error.code) {
+    let httpStatus: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message: string = 'Internal server error';
+
+    if (exception?.details) {
+      message = exception.details;
+
+      switch (exception.code) {
         case status.NOT_FOUND:
           httpStatus = HttpStatus.NOT_FOUND;
-          break;
-        case status.ALREADY_EXISTS:
-          httpStatus = HttpStatus.CONFLICT;
           break;
         case status.INVALID_ARGUMENT:
           httpStatus = HttpStatus.BAD_REQUEST;
           break;
+        case status.ALREADY_EXISTS:
+          httpStatus = HttpStatus.CONFLICT;
+          break;
         case status.INTERNAL:
           httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-          break;
-        case status.UNAUTHENTICATED:
-          httpStatus = HttpStatus.UNAUTHORIZED;
-          break;
-        case status.PERMISSION_DENIED:
-          httpStatus = HttpStatus.FORBIDDEN;
           break;
         default:
           httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
       }
-      message = (error as any)?.message || 'Internal server error';
-    } else {
-      httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+    } else if (exception?.message) {
+      message = exception.message;
     }
 
-    response.status(httpStatus).json({
+    const errorResponse = {
       statusCode: httpStatus,
       message,
       error: HttpStatus[httpStatus],
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    console.log('SENDING ERROR RESPONSE:', errorResponse);
+
+    response.status(httpStatus).json(errorResponse);
   }
 }

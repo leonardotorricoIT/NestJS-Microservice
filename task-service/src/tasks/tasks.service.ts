@@ -18,6 +18,7 @@ import {
   USER_SERVICE_NAME,
 } from '../proto/user';
 import { status } from '@grpc/grpc-js';
+
 @Injectable()
 export class TaskService implements OnModuleInit {
   private userService: UserServiceClient;
@@ -43,16 +44,25 @@ export class TaskService implements OnModuleInit {
         this.userService.validateUser({ id: createdBy }),
       );
 
-      if (!userValidation.exists) {
+      console.log('USER VALIDATION!', userValidation.exists);
+
+      if (userValidation.exists === false) {
+        console.log('USER DOES NOT EXIST - THROWING RPC EXCEPTION');
         throw new RpcException({
           code: status.NOT_FOUND,
           message: `User with ID ${createdBy} does not exist`,
         });
       }
     } catch (error) {
+      console.error('ERROR IN USER VALIDATION:', error);
+
+      if (error instanceof RpcException) {
+        throw error;
+      }
+
       throw new RpcException({
         code: status.INTERNAL,
-        message: 'Error validating user',
+        message: 'Error validating user with User Service',
       });
     }
 
@@ -74,11 +84,17 @@ export class TaskService implements OnModuleInit {
     const task = await this.taskRepository.findOne({ where: { id } });
 
     if (!task) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new RpcException({
+        code: status.NOT_FOUND,
+        message: `Task with ID ${id} not found`,
+      });
     }
 
     if (task.completed) {
-      throw new BadRequestException(`Task with ID ${id} is already completed`);
+      throw new RpcException({
+        code: status.INVALID_ARGUMENT,
+        message: `Task with ID ${id} is already completed`,
+      });
     }
 
     task.completed = true;
